@@ -1,287 +1,131 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  static const String _title = 'Flutter Code Sample';
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return const MaterialApp(
+      title: _title,
+      home: MyStatelessWidget(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin {
-  TabController? _tabController;
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(
-      length: 3,
-      vsync: this,
-    );
-  }
+class MyStatelessWidget extends StatelessWidget {
+  const MyStatelessWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
+    final List<String> _tabs = <String>['Tab 1', 'Tab 2'];
+    return DefaultTabController(
+      length: _tabs.length, // This is the number of tabs.
       child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(100),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                        fillColor: Colors.grey[200],
-                        filled: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
-                        prefixIcon: const Icon(Icons.search),
-                        focusedBorder: OutlineInputBorder(
-                            gapPadding: 12,
-                            borderRadius: BorderRadius.circular(8)),
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.transparent,
-                            ),
-                            borderRadius: BorderRadius.circular(8)),
-                        border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.white,
-                              width: 0,
-                            ),
-                            borderRadius: BorderRadius.circular(8)),
-                        labelText: 'Search',
-                        hintText: 'Search',
-                        labelStyle: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black.withOpacity(0.6),
-                        )),
+        body: NestedScrollView(
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            // These are the slivers that show up in the "outer" scroll view.
+            return <Widget>[
+              SliverOverlapAbsorber(
+                // This widget takes the overlapping behavior of the SliverAppBar,
+                // and redirects it to the SliverOverlapInjector below. If it is
+                // missing, then it is possible for the nested "inner" scroll view
+                // below to end up under the SliverAppBar even when the inner
+                // scroll view thinks it has not been scrolled.
+                // This is not necessary if the "headerSliverBuilder" only builds
+                // widgets that do not overlap the next sliver.
+                handle:
+                    NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                sliver: SliverAppBar(
+                  title:
+                      const Text('Books'), // This is the title in the app bar.
+                  pinned: true,
+                  expandedHeight: 150.0,
+                  // The "forceElevated" property causes the SliverAppBar to show
+                  // a shadow. The "innerBoxIsScrolled" parameter is true when the
+                  // inner scroll view is scrolled beyond its "zero" point, i.e.
+                  // when it appears to be scrolled below the SliverAppBar.
+                  // Without this, there are cases where the shadow would appear
+                  // or not appear inappropriately, because the SliverAppBar is
+                  // not actually aware of the precise position of the inner
+                  // scroll views.
+                  forceElevated: innerBoxIsScrolled,
+                  bottom: TabBar(
+                    // These are the widgets to put in each tab in the tab bar.
+                    tabs: _tabs.map((String name) => Tab(text: name)).toList(),
                   ),
                 ),
-                TabBar(
-                    controller: _tabController,
-                    labelColor: Theme.of(context).colorScheme.secondary,
-                    labelStyle:
-                        const TextStyle(color: Colors.black, fontSize: 13),
-                    unselectedLabelStyle:
-                        const TextStyle(color: Colors.black, fontSize: 13),
-                    indicatorWeight: 3.0,
-                    indicatorColor: Theme.of(context).colorScheme.secondary,
-                    unselectedLabelColor: Colors.grey,
-                    tabs: const [
-                      FittedBox(
-                        child: Tab(
-                          text: 'FAQ',
+              ),
+            ];
+          },
+          body: TabBarView(
+            // These are the contents of the tab views, below the tabs.
+            children: _tabs.map((String name) {
+              return SafeArea(
+                top: false,
+                bottom: false,
+                child: Builder(
+                  // This Builder is needed to provide a BuildContext that is
+                  // "inside" the NestedScrollView, so that
+                  // sliverOverlapAbsorberHandleFor() can find the
+                  // NestedScrollView.
+                  builder: (BuildContext context) {
+                    return CustomScrollView(
+                      // The "controller" and "primary" members should be left
+                      // unset, so that the NestedScrollView can control this
+                      // inner scroll view.
+                      // If the "controller" property is set, then this scroll
+                      // view will not be associated with the NestedScrollView.
+                      // The PageStorageKey should be unique to this ScrollView;
+                      // it allows the list to remember its scroll position when
+                      // the tab view is not on the screen.
+                      key: PageStorageKey<String>(name),
+                      slivers: <Widget>[
+                        SliverOverlapInjector(
+                          // This is the flip side of the SliverOverlapAbsorber
+                          // above.
+                          handle:
+                              NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                  context),
                         ),
-                      ),
-                      FittedBox(
-                        child: Tab(
-                          text: 'Terms & Conditions',
-                        ),
-                      ),
-                      FittedBox(
-                        child: Tab(
-                          text: 'Privacy & Policy',
-                        ),
-                      ),
-                    ])
-              ],
-            ),
-          ),
-          centerTitle: true,
-          title: const Text(
-            'Help Center',
-            style: TextStyle(fontSize: 16, color: Colors.black),
-          ),
-          leadingWidth: 36,
-          leading: Container(
-            margin: const EdgeInsets.only(top: 16.0, left: 16),
-            child: const Image(
-              image: AssetImage('assets/images/icons/Arrow - Left.png'),
-              height: 16,
-              width: 16,
-            ),
-          ),
-        ),
-        body: SafeArea(
-          child: TabBarView(controller: _tabController, children: [
-            SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Getting\nStarted',
-                      style: TextStyle(fontSize: 36),
-                    ),
-                    const SizedBox(
-                      height: 35,
-                    ),
-                    Text(
-                      'Personal details',
-                      style: TextStyle(
-                          fontSize: 18, color: Theme.of(context).primaryColor),
-                    ),
-                    const SizedBox(
-                      height: 13,
-                    ),
-                    const CustomCard(
-                      title: 'System related questions:',
-                      icon: Icons.arrow_drop_up_sharp,
-                      caption:
-                          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus phasellus sollicitudin pretium, est id massa turpis accumsan ',
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    const CustomCard(
-                      title: 'Support related questions:',
-                      icon: Icons.arrow_drop_down_sharp,
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    const CustomCard(
-                      title: 'How do I add new credit card',
-                      icon: Icons.arrow_drop_down_sharp,
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    const Text(
-                      'See all 12 articles',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF004225)),
-                    ),
-                    const SizedBox(
-                      height: 50,
-                    ),
-                    Text(
-                      'Discover',
-                      style: TextStyle(
-                          fontSize: 18, color: Theme.of(context).primaryColor),
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    const CustomCard(
-                      title: 'System related questions:',
-                      caption:
-                          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus phasellus sollicitudin pretium, est id massa turpis accumsan ',
-                      icon: Icons.arrow_drop_up_sharp,
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    const CustomCard(
-                      title: 'Support related questions:',
-                      icon: Icons.arrow_drop_down_sharp,
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    const CustomCard(
-                      title: 'How do I add new credit card',
-                      icon: Icons.arrow_drop_down_sharp,
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    Container(
-                      height: 64.0,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {},
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'Contact Us',
-                              style: TextStyle(
-                                  fontSize: 22, color: Color(0xFFEED448)),
+                        SliverPadding(
+                          padding: const EdgeInsets.all(8.0),
+                          // In this example, the inner scroll view has
+                          // fixed-height list items, hence the use of
+                          // SliverFixedExtentList. However, one could use any
+                          // sliver widget here, e.g. SliverList or SliverGrid.
+                          sliver: SliverFixedExtentList(
+                            // The items in this example are fixed to 48 pixels
+                            // high. This matches the Material Design spec for
+                            // ListTile widgets.
+                            itemExtent: 48.0,
+                            delegate: SliverChildBuilderDelegate(
+                              (BuildContext context, int index) {
+                                // This builder is called for each child.
+                                // In this example, we just number each list item.
+                                return ListTile(
+                                  title: Text('Item $index'),
+                                );
+                              },
+                              // The childCount of the SliverChildBuilderDelegate
+                              // specifies how many children this inner list
+                              // has. In this example, each tab has a list of
+                              // exactly 30 items, but this is arbitrary.
+                              childCount: 30,
                             ),
                           ),
                         ),
-                      ),
-                    )
-                  ],
+                      ],
+                    );
+                  },
                 ),
-              ),
-            ),
-            Container(),
-            Container()
-          ]),
-        ),
-      ),
-    );
-  }
-}
-
-class CustomCard extends StatelessWidget {
-  const CustomCard({
-    required this.title,
-    required this.icon,
-    this.caption = '',
-    Key? key,
-  }) : super(key: key);
-  final String title;
-  final IconData icon;
-  final String caption;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1)),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const Spacer(),
-              Icon(icon)
-            ],
+              );
+            }).toList(),
           ),
-          if (caption.isNotEmpty)
-            Text(caption,
-                style: TextStyle(
-                    fontSize: 14, color: Colors.black.withOpacity(0.7)))
-        ],
+        ),
       ),
     );
   }
