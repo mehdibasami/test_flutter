@@ -42,7 +42,6 @@ add_host_key() {
             echo "Successfully added '$host' to $known_hosts_file."
         else
             echo "Failed to add '$host'. Please check the server address and your network connection."
-            exit 1
         fi
     fi
 }
