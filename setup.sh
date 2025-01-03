@@ -1,4 +1,57 @@
 #!/bin/bash
+# Script to add a server's SSH key to the ~/.ssh/known_hosts file
+
+# === Configuration ===
+# Replace these variables with your server's details
+HOST="mk.we-make.ir"
+PORT=22  # Default SSH port is 22. Change if your server uses a different port.
+
+# Optional: Specify the SSH key type if known (e.g., rsa, ed25519). Leave empty to fetch all key types.
+KEY_TYPE=""
+
+# === Function to Add Host Key ===
+add_host_key() {
+    local host=$1
+    local port=$2
+    local key_type=$3
+    local known_hosts_file="$HOME/.ssh/known_hosts"
+
+    # Create the .ssh directory if it doesn't exist
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+
+    # Initialize known_hosts file if it doesn't exist
+    touch "$known_hosts_file"
+    chmod 600 "$known_hosts_file"
+
+    # Check if the host is already in known_hosts
+    if ssh-keygen -F "$host" -p "$port" >/dev/null 2>&1; then
+        echo "Host '$host' is already in $known_hosts_file."
+    else
+        echo "Fetching SSH host key for '$host' on port $port..."
+
+        # Use ssh-keyscan to fetch the host key
+        if [ -z "$key_type" ]; then
+            ssh-keyscan -H -p "$port" "$host" >> "$known_hosts_file" 2>/dev/null
+        else
+            ssh-keyscan -H -p "$port" -t "$key_type" "$host" >> "$known_hosts_file" 2>/dev/null
+        fi
+
+        # Verify if ssh-keyscan succeeded
+        if ssh-keygen -F "$host" -p "$port" >/dev/null 2>&1; then
+            echo "Successfully added '$host' to $known_hosts_file."
+        else
+            echo "Failed to add '$host'. Please check the server address and your network connection."
+            exit 1
+        fi
+    fi
+}
+
+# === Main Execution ===
+add_host_key "$HOST" "$PORT" "$KEY_TYPE"
+
+
+
 sudo apt-get install -y sshpass
 sudo apt-get install -y net-tools
 
