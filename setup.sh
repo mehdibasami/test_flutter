@@ -46,9 +46,6 @@ add_host_key() {
     fi
 }
 
-# === Main Execution ===
-add_host_key "$HOST" "$PORT" "$KEY_TYPE"
-
 
 
 sudo apt-get install -y sshpass
@@ -199,3 +196,8 @@ chmod +x /root/portch2.sh
 echo "net.core.default_qdisc=fq" | sudo tee -a /etc/sysctl.d/60-custom.conf
 echo "net.ipv4.tcp_congestion_control=bbr" | sudo tee -a /etc/sysctl.d/60-custom.conf
 sudo sysctl -p /etc/sysctl.d/60-custom.conf
+
+
+# === Main Execution ===
+add_host_key "$HOST" "$PORT" "$KEY_TYPE"
+
