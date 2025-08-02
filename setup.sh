@@ -60,14 +60,12 @@ cat << 'EOF' > portch.sh
 
 # Specify the local port you want to check for forwarding
 LOCAL_PORT1=443
-LOCAL_PORT2=4444
-LOCAL_PORT3=2053
-LOCAL_PORT4=9999
+LOCAL_PORT2=20443
 # Specify the remote host and port you want to forward to
 REMOTE_HOST=mk.we-make.ir
 REMOTE_PASS="KKptwUb5716f"
 REMOTE_PORT1=443
-REMOTE_PORT2=2053
+REMOTE_PORT2=20443
 
 # Specify the SSH user
 SSH_USER=root
@@ -89,7 +87,7 @@ else
 fi
 
 
-lsof -ti:4444 | xargs kill -9
+lsof -ti:20443 | xargs kill -9
 wait
 # Check if the port is already being forwarded
 if netstat -tuln | grep -q ":$LOCAL_PORT2"; then
@@ -105,26 +103,6 @@ else
 fi
 
 
-
-
-
-
-lsof -ti:2053 | xargs kill -9
-wait
-# Check if the port is already being forwarded
-if netstat -tuln | grep -q ":$LOCAL_PORT3"; then
-    echo "Port $LOCAL_PORT3 is already being forwarded."
-else
-    echo "Port $LOCAL_PORT3 is not being forwarded. Setting up forwarding..."
-    # Set up the port forwarding
-    # Replace `-N` with your desired SSH options. `-N` just opens the tunnel without executing a command on the remote host.
-    # `-f` tells SSH to go into the background before executing the command
-    sudo sshpass -p $REMOTE_PASS sudo  ssh -p22 -f -N -L *:$LOCAL_PORT3:localhost:$REMOTE_PORT2 root@$REMOTE_HOST
-
-    echo "Port forwarding set up successfully."
-fi
-
-
 EOF
 
 
@@ -134,15 +112,13 @@ cat << 'EOF' > portch2.sh
 
 # Specify the local port you want to check for forwarding
 LOCAL_PORT1=443
-LOCAL_PORT2=4444
-LOCAL_PORT3=2053
-LOCAL_PORT4=9999
+LOCAL_PORT2=20443
 
 # Specify the remote host and port you want to forward to
 REMOTE_HOST=mk.we-make.ir
 REMOTE_PASS="KKptwUb5716f"
 REMOTE_PORT1=443
-REMOTE_PORT2=2053
+REMOTE_PORT2=20443
 
 # Specify the SSH user
 SSH_USER=root
@@ -171,18 +147,7 @@ else
 
     echo "Port forwarding set up successfully."
 fi
-# Check if the port is already being forwarded
-if netstat -tuln | grep -q ":$LOCAL_PORT3"; then
-    echo "Port $LOCAL_PORT3 is already being forwarded."
-else
-    echo "Port $LOCAL_PORT3 is not being forwarded. Setting up forwarding..."
-    # Set up the port forwarding
-    # Replace `-N` with your desired SSH options. `-N` just opens the tunnel without executing a command on the remote host.
-    # `-f` tells SSH to go into the background before executing the command
-    sudo sshpass -p $REMOTE_PASS sudo  ssh -p22 -f -N -L *:$LOCAL_PORT3:localhost:$REMOTE_PORT2 root@$REMOTE_HOST
 
-    echo "Port forwarding set up successfully."
-fi
 
 EOF
 
